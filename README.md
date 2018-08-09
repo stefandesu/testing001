@@ -1,6 +1,6 @@
 # testing001
 
-Commit 1
+[Commit 1](#atestwithslashes)
 Commit 2
 
 Commit 3 from branch `test`
@@ -13,3 +13,5 @@ Commit 8 signed from work Mac!
 
 Commit 9
 
+## /a/test/with/slashes
+Blubb
