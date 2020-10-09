@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cross-site 🍪 sandbox</title>
+<p>Testing cross-site cookies</p>
+<script src="https://cdn.jsdelivr.net/gh/gbv/login-client/build/login-client.min.js"></script>
+<script>
+  function fetchCookies(requestMethod) {
+    var req = new XMLHttpRequest();
+    req.withCredentials = true;
+    req.responseType = 'json';
+    req.open(requestMethod, "https://logintest.dahdg.de/token", true);
+    req.onload  = function() {
+       console.log(req.response)
+       const token = req.response.token
+       const decoded = LoginClient.jwtDecode(token)
+       console.log("decoded:", decoded)
+    };
+    req.send(null);
+  }
+
+  fetchCookies('GET');
+</script>
