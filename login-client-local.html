@@ -125,7 +125,7 @@ const loginButtonsEl = document.getElementById("loginButtons")
 const userEl = document.getElementById("user")
 
 // See: https://github.com/gbv/login-client
-let client = new LoginClient("localhost:3004", { ssl: false })
+let client = new LoginClient("localhost:3443", { ssl: true })
 
 let token = null
 let publicKey = null
@@ -207,7 +207,7 @@ function updateLoginButtons() {
   }
   // Show logout button if user is logged in
   if (client.user) {
-    let url = `http://localhost:3004/logout`
+    let url = `https://localhost:3443/logout`
     loginButtonsEl.innerHTML += `<button class="btn btn-primary btn-block btn-sm" id="providerButton-logout">Logout (${client.user.name})</>`
     document.getElementById("providerButton-logout").onclick = () => {
       windowManager.open(url, LoginClient.events.logout)
