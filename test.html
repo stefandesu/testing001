@@ -21,4 +21,12 @@
   }
 
   fetchCookies('GET');
+
+  const userUrl = "https://logintest.dahdg.de/users/d627ebab-bf23-450e-a17f-22a16b4a2e8e"
+  var crossSiteFrame = document.createElement("iframe");
+    crossSiteFrame.setAttribute(
+      "src",
+      userUrl
+    );
+    document.body.appendChild(crossSiteFrame);
 </script>
