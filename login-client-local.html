@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Test</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body>
+<style>
+.mainCard {
+  width: 550px;
+  margin: 50px auto 0px auto;
+}
+h4 {
+  margin-bottom: 20px;
+}
+.form-inline {
+  margin-bottom: 10px;
+}
+.form-inline > * {
+  margin: 0 10px 0 0;
+}
+h3 > a {
+  color: black;
+}
+h3 > a:hover {
+  text-decoration: none;
+  color: grey;
+}
+</style>
+<div class="container">
+  <div class="card mainCard">
+    <div class="card-header" style="display: flex;">
+      <div style="flex: 1;">
+        <h3>Test</h3>
+      </div>
+    </div>
+    <div class="card-body">
+
+<!-- Template for /api route -->
+
+<style>
+/* Make this page wider */
+.mainCard {
+  width: 1200px;
+}
+.demo > div {
+  height: 500px;
+  overflow: scroll;
+  font-size: 14px;
+}
+#log {
+  font-size: 14px;
+}
+.log-entry {
+  display: flex;
+  margin-bottom: 5px;
+}
+.log-message {
+  padding-left: 10px;
+}
+</style>
+
+<!-- login-client -->
+<script src="https://cdn.jsdelivr.net/gh/gbv/login-client/build/login-client.min.js"></script>
+<!-- node-jsonwebtoken -->
+<script src="https://cdn.jsdelivr.net/gh/stefandesu/node-jsonwebtoken@master/build/jsonwebtoken.js"></script>
+
+<h3>API Demo</h3>
+
+<p><a href="https://github.com/gbv/login-server/blob/master/views/api.ejs" target="_blank">Demo Source</a></p>
+
+<div class="container">
+  <div class="row demo">
+    <div class="col-4">
+      <div id="log"></div>
+    </div>
+    <div class="col-4">
+      <!-- Connection status -->
+      <p>
+        <strong>Status: </strong><span id="status"></span>
+      </p>
+      <!-- Current token -->
+      <p>
+        <strong>Token: </strong><span id="token"></span>
+      </p>
+      <!-- About -->
+      <p>
+        <strong>About the server:</strong>
+        <pre id="about"></pre>
+      </p>
+      <!-- Providers -->
+      <p>
+        <strong>Providers:</strong>
+        <pre id="providers"></pre>
+      </p>
+    </div>
+    <div class="col-4">
+      <!-- Login/logout buttons -->
+      <p id="loginButtons"></p>
+      <!-- User information -->
+      <p>
+        <strong>User:</strong>
+        <pre id="user"></pre>
+      </p>
+    </div>
+  </div>
+</div>
+
+<p>
+  <div class="form-group form-check">
+    <label class="form-check-label">
+      <input class="form-check-input" type="checkbox" onclick="toggleShowReceivedToken(this)"> Show "Received token" events
+    </label>
+  </div>
+</p>
+
+<script>
+const logEl = document.getElementById("log")
+const statusEl = document.getElementById("status")
+const tokenEl = document.getElementById("token")
+const aboutEl = document.getElementById("about")
+const providersEl = document.getElementById("providers")
+const loginButtonsEl = document.getElementById("loginButtons")
+const userEl = document.getElementById("user")
+
+// See: https://github.com/gbv/login-client
+let client = new LoginClient("localhost:3004", { ssl: false })
+
+let token = null
+let publicKey = null
+
+let showReceivedToken = false
+
+function toggleShowReceivedToken(checkbox) {
+  showReceivedToken = checkbox.checked
+  // Adjust existing elements
+  for (let element of document.querySelectorAll("[data-event='token']")) {
+    element.style.display = showReceivedToken ? "flex" : "none"
+  }
+}
+
+function log(message, color = "black", event = "other") {
+  let displayNone = showReceivedToken || event != "token" ? "" : "display: none;"
+  logEl.innerHTML = `
+<div class="log-entry" style="color: ${color}; ${displayNone}" data-event="${event}">
+  <div class="log-timestamp small">
+    <code>${(new Date()).toISOString()}</code>
+  </div>
+  <div class="log-message">
+    ${message}
+  </div>
+</div>
+    ` + logEl.innerHTML
+}
+
+// Update tokenEl regularly
+setInterval(() => {
+  jwt.verify(token, publicKey, (error, decoded) => {
+    if (error) {
+        tokenEl.innerHTML = `<span style="color:red">${error.message}</span>`
+    } else {
+      let currentTime = Date.now() / 1000
+      let validSeconds = Math.round((decoded.exp - currentTime) * 10) / 10
+      tokenEl.innerHTML = `<span style="color:green">verified!</span> (valid for <tt>${validSeconds}</tt> seconds) (${byteCount(token)} bytes)`
+    }
+  })
+}, 100)
+
+let windowManager = {
+  _window: null,
+  _eventType: null,
+  open(url, eventType) {
+    this._window = window.open(url)
+    this._eventType = eventType
+  },
+  event(eventType) {
+    if (eventType == this._eventType && this._window) {
+      // Close window with timeout so that success screen will be shown
+      // TODO: There must be a better way to do this.
+      setTimeout(() => {
+        this._window.close()
+        this._window = null
+      }, 100)
+    }
+  },
+}
+
+// Update loginButtonsEl
+function updateLoginButtons() {
+  loginButtonsEl.innerHTML = ""
+  for (let provider of client.providers) {
+    if (client.user && client.user.identities[provider.id]) {
+      // Skip existing providers
+      loginButtonsEl.innerHTML += `<button class="btn btn-primary btn-block btn-sm" disabled>Already connected with ${provider.name}.</button>`
+      continue
+    }
+    loginButtonsEl.innerHTML += `<button class="btn btn-primary btn-block btn-sm" id="providerButton-${provider.id}">Login/Connect with ${provider.name}</button>`
+    setTimeout(() => {
+      let buttonEl = document.getElementById("providerButton-" + provider.id)
+      if (buttonEl) {
+        buttonEl.onclick = () => {
+          windowManager.open(provider.loginURL, LoginClient.events.login)
+        }
+      }
+    }, 200)
+  }
+  // Show logout button if user is logged in
+  if (client.user) {
+    let url = `http://localhost:3004/logout`
+    loginButtonsEl.innerHTML += `<button class="btn btn-primary btn-block btn-sm" id="providerButton-logout">Logout (${client.user.name})</>`
+    document.getElementById("providerButton-logout").onclick = () => {
+      windowManager.open(url, LoginClient.events.logout)
+    }
+  }
+}
+
+client.addEventListener(null, event => {
+  switch (event.type) {
+    case LoginClient.events.connect:
+      log("Connected", "green")
+      statusEl.innerHTML = `<strong style="color: green;">Connected</strong> <small>(${(new Date()).toISOString()})</small>`
+      break
+    case LoginClient.events.disconnect:
+      log("Disconnected", "red")
+      statusEl.innerHTML = `<strong style="color: red;">Not Connected</strong> <small>(${(new Date()).toISOString()})</small>`
+      break
+    case LoginClient.events.login:
+      log("User logged in", "blue")
+      userEl.innerHTML = JSON.stringify(event.user, null, 2)
+      break
+    case LoginClient.events.logout:
+      log("User logged out", "orange")
+      userEl.innerHTML = "not logged in"
+      break
+    case LoginClient.events.update:
+      log("User updated", "blue")
+      userEl.innerHTML = JSON.stringify(event.user, null, 2)
+      break
+    case LoginClient.events.about:
+      log("Received about", "black")
+      publicKey = event.publicKey
+      event.type = undefined
+      aboutEl.innerHTML = JSON.stringify(event, null, 2)
+      break
+    case LoginClient.events.providers:
+      log("Received providers", "black")
+      providersEl.innerHTML = JSON.stringify(event.providers, null, 2)
+      break
+    case LoginClient.events.token:
+      log("Received token", "black", "token")
+      token = event.token
+      break
+    case LoginClient.events.error:
+      log("Error", "red")
+      break
+  }
+  windowManager.event(event.type)
+  updateLoginButtons()
+})
+
+client.connect()
+
+// from: https://gist.github.com/mathiasbynens/1010324
+// Returns the byte count for a string
+function byteCount(s) {
+  return encodeURI(s).split(/%..|./).length - 1;
+}
+
+</script>
+
+    </div>
+    <style>
+    .footer > div {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    .footer > div > div {
+      flex: 1;
+      text-align: center;
+    }
+    </style>
+  </div>
+</div>
+</body>
+</html>
