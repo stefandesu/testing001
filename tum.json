@@ -1,0 +1,18 @@
+{
+  "registries": [
+    {
+      "provider": "ConceptApi",
+      "uri": "http://coli-conc.gbv.de/registry/tum-test",
+      "status": "https://coli-conc.gbv.de/dev-api/status",
+      "schemes": [
+        { "uri": "http://bartoc.org/en/node/495" }
+      ],
+      "notation": [
+        "TUM"
+      ],
+      "prefLabel": {
+        "en": "TUM (test)"
+      }
+    }
+  ]
+}
